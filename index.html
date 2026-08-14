@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <title>메트로놈</title>
+  <style>
+    :root{--bg:#0b1020;--panel:#141b31;--panel2:#1c2541;--text:#f8fafc;--muted:#94a3b8;--accent:#22c55e;--accent2:#38bdf8;--danger:#ef4444;--shadow:0 14px 40px rgba(0,0,0,.28)}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#18213d 0,#0b1020 52%,#070b15 100%);color:var(--text);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:20px}
+    .app{width:min(100%,520px)}
+    h1{font-size:28px;margin:4px 0 6px;text-align:center}.sub{text-align:center;color:var(--muted);margin-bottom:18px}
+    .card{background:rgba(20,27,49,.94);border:1px solid rgba(255,255,255,.07);border-radius:24px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px}
+    .tempo{font-size:72px;font-weight:800;line-height:1;text-align:center;letter-spacing:-3px}.bpm{text-align:center;color:var(--muted);font-weight:700;margin-top:4px}
+    .pulse{height:18px;border-radius:999px;background:#29324e;margin:18px 0 8px;overflow:hidden}.pulse>div{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .06s linear}
+    .beat-dots{display:flex;gap:9px;justify-content:center;min-height:22px;margin:10px 0 16px;flex-wrap:wrap}.dot{width:18px;height:18px;border-radius:50%;background:#34405f;border:2px solid #4b5a7d}.dot.active{background:var(--accent2);transform:scale(1.16)}.dot.accent{background:#f59e0b;border-color:#fde68a}
+    .row{display:flex;gap:10px;align-items:center}.row>*{flex:1}
+    button,select,input[type=number]{min-height:54px;border:0;border-radius:16px;font-size:18px;font-weight:750}
+    button{background:var(--panel2);color:var(--text);cursor:pointer}button:active{transform:scale(.98)}
+    .primary{background:var(--accent);color:#052e16;font-size:22px}.stop{background:var(--danger);color:white}.secondary{background:#263452}.small{min-height:48px}
+    .tempo-row{display:grid;grid-template-columns:64px 1fr 64px;gap:10px;margin-top:14px}.tempo-row button{font-size:32px}.tempo-row input{width:100%;background:#0f172a;color:white;text-align:center;border:2px solid #334155}
+    label{display:block;color:#cbd5e1;font-size:14px;font-weight:700;margin-bottom:7px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field{background:#0f172a;border-radius:16px;padding:12px}.field select{width:100%;background:#1e293b;color:white;padding:0 12px}.field input[type=range]{width:100%}
+    .switch{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#0f172a;padding:12px 14px;border-radius:16px;margin-top:12px}.switch input{width:28px;height:28px}
+    .hint{color:var(--muted);font-size:13px;line-height:1.55;margin-top:12px}.footer{text-align:center;color:#64748b;font-size:12px;padding:4px 0 18px}
+    @media(max-width:420px){.tempo{font-size:64px}.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>🎵 메트로놈</h1>
+    <div class="sub">정확한 박자로 연습하세요</div>
+
+    <section class="card">
+      <div id="tempoDisplay" class="tempo">80</div>
+      <div class="bpm">BPM</div>
+      <div class="pulse"><div id="pulseBar"></div></div>
+      <div id="beatDots" class="beat-dots"></div>
+
+      <div class="tempo-row">
+        <button id="minusBtn" aria-label="BPM 감소">−</button>
+        <input id="bpmInput" type="number" min="40" max="240" value="80" inputmode="numeric" aria-label="BPM 입력" />
+        <button id="plusBtn" aria-label="BPM 증가">＋</button>
+      </div>
+
+      <div class="row" style="margin-top:12px">
+        <button id="tapBtn" class="secondary">TAP 템포</button>
+        <button id="startBtn" class="primary">▶ 시작</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="grid">
+        <div class="field">
+          <label for="meter">박자</label>
+          <select id="meter">
+            <option value="2">2/4</option><option value="3">3/4</option><option value="4" selected>4/4</option><option value="6">6/8</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="volume">볼륨 <span id="volText">75%</span></label>
+          <input id="volume" type="range" min="0" max="100" value="75" />
+        </div>
+      </div>
+      <div class="switch"><span><strong>첫 박 강세</strong><br><span class="hint">첫 박을 더 높은 소리로 재생</span></span><input id="accent" type="checkbox" checked /></div>
+      <div class="switch"><span><strong>화면 깜빡임</strong><br><span class="hint">박자에 맞춰 표시</span></span><input id="flash" type="checkbox" checked /></div>
+      <p class="hint">BPM 범위: 40~240. 실행 중에도 BPM과 박자를 바로 바꿀 수 있습니다. 처음 시작할 때 브라우저가 오디오 재생을 허용하도록 한 번 버튼을 눌러주세요.</p>
+    </section>
+
+    <div class="footer">홈 화면에 추가하면 앱처럼 사용할 수 있습니다.</div>
+  </main>
+
+<script>
+(() => {
+  const $=id=>document.getElementById(id);
+  const bpmInput=$('bpmInput'), tempoDisplay=$('tempoDisplay'), meter=$('meter'), beatDots=$('beatDots');
+  const volume=$('volume'), volText=$('volText'), accent=$('accent'), flash=$('flash'), pulseBar=$('pulseBar');
+  const startBtn=$('startBtn'), tapBtn=$('tapBtn');
+  let audioCtx=null, masterGain=null, running=false, timerID=null, nextNoteTime=0, currentBeat=0, lookahead=25, scheduleAheadTime=.12;
+  let taps=[];
+
+  const clampBpm=v=>Math.max(40,Math.min(240,Math.round(Number(v)||80)));
+  function setBpm(v){v=clampBpm(v);bpmInput.value=v;tempoDisplay.textContent=v;localStorage.setItem('metroBpm',v)}
+  function renderDots(){beatDots.innerHTML='';for(let i=0;i<Number(meter.value);i++){const d=document.createElement('div');d.className='dot';beatDots.appendChild(d)}}
+  function showBeat(beat){
+    [...beatDots.children].forEach((d,i)=>{d.className='dot'+(i===beat?(accent.checked&&i===0?' active accent':' active'):'')});
+    if(flash.checked){pulseBar.style.width='100%';setTimeout(()=>pulseBar.style.width='0%',70)}
+  }
+  function initAudio(){
+    if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)();masterGain=audioCtx.createGain();masterGain.gain.value=volume.value/100;masterGain.connect(audioCtx.destination)}
+    if(audioCtx.state==='suspended') audioCtx.resume();
+  }
+  function clickSound(time,beat){
+    const osc=audioCtx.createOscillator(), gain=audioCtx.createGain();
+    const isAccent=accent.checked&&beat===0;
+    osc.frequency.value=isAccent?1200:850;osc.type='square';
+    gain.gain.setValueAtTime(0.0001,time);gain.gain.exponentialRampToValueAtTime(isAccent?.9:.55,time+.002);gain.gain.exponentialRampToValueAtTime(.0001,time+.045);
+    osc.connect(gain);gain.connect(masterGain);osc.start(time);osc.stop(time+.06);
+  }
+  function nextNote(){const secondsPerBeat=60/Number(bpmInput.value);nextNoteTime+=secondsPerBeat;currentBeat=(currentBeat+1)%Number(meter.value)}
+  function scheduler(){while(nextNoteTime<audioCtx.currentTime+scheduleAheadTime){const beat=currentBeat, when=nextNoteTime;clickSound(when,beat);const delay=Math.max(0,(when-audioCtx.currentTime)*1000);setTimeout(()=>showBeat(beat),delay);nextNote()}timerID=setTimeout(scheduler,lookahead)}
+  async function start(){initAudio();running=true;currentBeat=0;nextNoteTime=audioCtx.currentTime+.05;startBtn.textContent='■ 정지';startBtn.classList.remove('primary');startBtn.classList.add('stop');scheduler();try{if(navigator.wakeLock) window._wake=await navigator.wakeLock.request('screen')}catch(e){}}
+  function stop(){running=false;clearTimeout(timerID);startBtn.textContent='▶ 시작';startBtn.classList.add('primary');startBtn.classList.remove('stop');[...beatDots.children].forEach(d=>d.className='dot');pulseBar.style.width='0%';if(window._wake){window._wake.release().catch(()=>{});window._wake=null}}
+  startBtn.addEventListener('click',()=>running?stop():start());
+  $('minusBtn').onclick=()=>setBpm(Number(bpmInput.value)-1);$('plusBtn').onclick=()=>setBpm(Number(bpmInput.value)+1);
+  bpmInput.addEventListener('change',()=>setBpm(bpmInput.value));bpmInput.addEventListener('input',()=>{tempoDisplay.textContent=clampBpm(bpmInput.value)});
+  meter.addEventListener('change',()=>{renderDots();currentBeat=0;localStorage.setItem('metroMeter',meter.value)});
+  volume.addEventListener('input',()=>{volText.textContent=volume.value+'%';if(masterGain) masterGain.gain.value=volume.value/100;localStorage.setItem('metroVolume',volume.value)});
+  accent.addEventListener('change',()=>localStorage.setItem('metroAccent',accent.checked?'1':'0'));
+  flash.addEventListener('change',()=>localStorage.setItem('metroFlash',flash.checked?'1':'0'));
+  tapBtn.addEventListener('click',()=>{const now=performance.now();taps=taps.filter(t=>now-t<2500);taps.push(now);if(taps.length>=2){const intervals=taps.slice(1).map((t,i)=>t-taps[i]);const avg=intervals.reduce((a,b)=>a+b,0)/intervals.length;setBpm(60000/avg)}});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&running&&audioCtx?.state==='suspended')audioCtx.resume()});
+  const savedBpm=localStorage.getItem('metroBpm'), savedMeter=localStorage.getItem('metroMeter'), savedVol=localStorage.getItem('metroVolume');
+  if(savedBpm)setBpm(savedBpm); else setBpm(80);if(savedMeter)meter.value=savedMeter;if(savedVol){volume.value=savedVol;volText.textContent=savedVol+'%'}
+  if(localStorage.getItem('metroAccent')!==null)accent.checked=localStorage.getItem('metroAccent')==='1';if(localStorage.getItem('metroFlash')!==null)flash.checked=localStorage.getItem('metroFlash')==='1';
+  renderDots();
+  if('serviceWorker' in navigator) window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+})();
+</script>
+</body>
+</html>

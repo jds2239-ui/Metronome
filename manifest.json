@@ -1,0 +1,14 @@
+{
+  "name": "메트로놈",
+  "short_name": "메트로놈",
+  "description": "BPM, 박자, 첫 박 강세, 탭 템포를 지원하는 휴대폰 메트로놈",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1020",
+  "theme_color": "#111827",
+  "orientation": "portrait-primary",
+  "icons": [
+    {"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
